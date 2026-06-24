@@ -142,7 +142,11 @@ export async function getTiebaList(bduss: string): Promise<TiebaList> {
       return res;
     }, `获取贴吧列表 第${pn}页`);
 
-    const pageList: TiebaList = response.data.data?.like_forum || [];
+    const forumList = response.data.forum_list;
+    const pageList: TiebaList = [
+      ...(forumList?.['non-gconforum'] || []),
+      ...(forumList?.gconforum || [])
+    ];
     allTiebas = allTiebas.concat(pageList);
     console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
 
