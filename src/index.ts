@@ -140,6 +140,14 @@ interface TiebaTrackInfo {
         }
       }
 
+      // 每签到 95 个，暂停 40 分钟
+      const totalSigned = successCount + alreadySignedCount;
+      if (totalSigned > 0 && totalSigned % 95 === 0 && (i + j + 1) < tiebaList.length) {
+          console.log(`⏸️ 已签到 ${totalSigned} 个，暂停 40 分钟后继续...`);
+          yield new Promise(resolve => setTimeout(resolve, 40 * 60 * 1000));
+          console.log(`▶️ 继续签到...`);
+      }
+
       // 收集签到失败的贴吧
       const failedTiebas: TiebaTrackInfo[] = [];
       batchResults.forEach(result => {
