@@ -61,8 +61,8 @@ interface TiebaTrackInfo {
     const tbs = await getTbs(bduss);
 
     // 配置批量签到的大小和间隔
-    const batchSize = parseInt(process.env.BATCH_SIZE || '20', 10);
-    const batchInterval = parseInt(process.env.BATCH_INTERVAL || '1000', 10);
+    const batchSize = parseInt(process.env.BATCH_SIZE || '1', 10);
+    const batchInterval = parseInt(process.env.BATCH_INTERVAL || '3000', 10);
 
     // 配置重试相关参数
     const maxRetries = parseInt(process.env.MAX_RETRIES || '3', 10);
@@ -143,8 +143,8 @@ interface TiebaTrackInfo {
       // 每签到 95 个，暂停 40 分钟
       const totalSigned = successCount + alreadySignedCount;
       if (totalSigned > 0 && totalSigned % 95 === 0 && (i + j + 1) < tiebaList.length) {
-          console.log(`⏸️ 已签到 ${totalSigned} 个，暂停 40 分钟后继续...`);
-          yield new Promise(resolve => setTimeout(resolve, 40 * 60 * 1000));
+          console.log(`⏸️ 已签到 ${totalSigned} 个，暂停 30 分钟后继续...`);
+          yield new Promise(resolve => setTimeout(resolve, 30 * 60 * 1000));
           console.log(`▶️ 继续签到...`);
       }
 
