@@ -122,6 +122,12 @@ const notify_1 = require("./notify");
                 if (j < batchTiebas.length - 1) {
                     yield new Promise(resolve => setTimeout(resolve, 1000 + Math.floor(Math.random() * 2000)));
                 }
+                // 每实际签到 95 个，暂停 40 分钟
+                if (successCount > 0 && successCount % 95 === 0 && (i + j + 1) < tiebaList.length) {
+                    console.log(`⏸️ 已成功签到 ${successCount} 个，暂停 40 分钟后继续...`);
+                    yield new Promise(resolve => setTimeout(resolve, 40 * 60 * 1000));
+                    console.log(`▶️ 继续签到...`);
+                }
             }
             // 收集签到失败的贴吧
             const failedTiebas = [];
