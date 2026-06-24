@@ -121,52 +121,33 @@ export async function login(bduss: string): Promise<UserInfo> {
  */
 export async function getTiebaList(bduss: string): Promise<TiebaList> {
   const headers = {
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'User-Agent': 'bdtb for Android 12.28.1.0',
+    'Cookie': `BDUSS=${bduss}`,
+    'Content-Type': 'application/octet-stream',
+    'Referer': 'https://tieba.baidu.com/index/tbwise/forum',
+    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
   };
 
-  function generateSign(params: Record<string, string>): string {
-    const sortedKeys = Object.keys(params).sort();
-    const paramStr = sortedKeys.map(key => `${key}=${params[key]}`).join('');
-    return require('crypto').createHash('md5').update(paramStr + 'tiebaclient!!!').digest('hex');
-  }
-
   let allTiebas: TiebaList = [];
-  let page_no = 1;
+  let pn = 1;
 
   while (true) {
-    const params: Record<string, string> = {
-      BDUSS: bduss,
-      page_no: String(page_no),
-      page_size: '200',
-      _client_version: '12.28.1.0',
-    };
-    params.sign = generateSign(params);
-
     const response = await withRetry(async () => {
-      const res = await axios.post(
-        'https://c.tieba.baidu.com/c/f/forum/like',
-        toQueryString(params),
+      const res = await axios.get(
+        `https://tieba.baidu.com/mo/q/newmoindex?pn=${pn}`,
         { headers }
       );
-      console.log(`🔍 第${page_no}页响应:`, JSON.stringify(res.data).substring(0, 200));
-      if (!res.data || res.data.error_code !== '0') {
-        throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || JSON.stringify(res.data).substring(0, 100)}`);
+      if (!res.data || res.data.error !== 'success') {
+        throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
       }
       return res;
-    }, `获取贴吧列表 第${page_no}页`);
+    }, `获取贴吧列表 第${pn}页`);
 
-    const forumList = response.data.forum_list;
-    const pageList: TiebaList = [
-      ...(forumList?.non_gconforum || []),
-      ...(forumList?.gconforum || [])
-    ];
-
+    const pageList: TiebaList = response.data.data?.like_forum || [];
     allTiebas = allTiebas.concat(pageList);
-    console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
+    console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
 
-    if (response.data.has_more !== '1') break;
-    page_no++;
+    if (pageList.length < 200) break;
+    pn++;
     await sleep(500);
   }
 
