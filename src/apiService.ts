@@ -120,39 +120,44 @@ export async function login(bduss: string): Promise<UserInfo> {
  * @returns 贴吧列表和TBS
  */
 export async function getTiebaList(bduss: string): Promise<TiebaList> {
-  return withRetry(async () => {
-    const url = 'https://tieba.baidu.com/mo/q/newmoindex';
-    const headers = {
-      'Cookie': `BDUSS=${bduss}`,
-      'Content-Type': 'application/octet-stream',
-      'Referer': 'https://tieba.baidu.com/index/tbwise/forum',
-      'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
-    };
+  const headers = {
+    'Cookie': `BDUSS=${bduss}`,
+    'Content-Type': 'application/x-www-form-urlencoded',
+    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Mobile Safari/537.36'
+  };
 
   let allTiebas: TiebaList = [];
-  let pn = 1;
+  let page_no = 1;
+  const page_size = 200;
 
   while (true) {
-    const url = `https://tieba.baidu.com/mo/q/newmoindex?pn=${pn}`;
     const response = await withRetry(async () => {
-      const res = await axios.get(url, { headers });
-      if (!res.data || res.data.error !== 'success') {
+      const res = await axios.post(
+        'https://c.tieba.baidu.com/c/f/forum/like',
+        `page_no=${page_no}&page_size=${page_size}`,
+        { headers }
+      );
+      if (!res.data || res.data.error_code !== '0') {
         throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
       }
       return res;
-    }, `获取贴吧列表 第${pn}页`);
+    }, `获取贴吧列表 第${page_no}页`);
 
-    const pageList: TiebaList = response.data.data.like_forum || [];
+    const forumList = response.data.forum_list;
+    const pageList: TiebaList = [
+      ...(forumList?.non_gconforum || []),
+      ...(forumList?.gconforum || [])
+    ];
+
     allTiebas = allTiebas.concat(pageList);
+    console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
 
-    console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
-
-    // 如果本页数量不足200，说明已经是最后一页
-    if (pageList.length < 200) break;
-    pn++;
+    if (response.data.has_more !== '1') break;
+    page_no++;
+    await sleep(500);
   }
 
-  console.log(`📋 共获取贴吧列表成功，总计 ${allTiebas.length} 个贴吧`);
+  console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
   return allTiebas;
 }
 
