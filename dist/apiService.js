@@ -115,44 +115,30 @@ function login(bduss) {
  */
 function getTiebaList(bduss) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'bdtb for Android 12.28.1.0',
+            'Cookie': `BDUSS=${bduss}`,
+            'Content-Type': 'application/octet-stream',
+            'Referer': 'https://tieba.baidu.com/index/tbwise/forum',
+            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
         };
-        function generateSign(params) {
-            const sortedKeys = Object.keys(params).sort();
-            const paramStr = sortedKeys.map(key => `${key}=${params[key]}`).join('');
-            return require('crypto').createHash('md5').update(paramStr + 'tiebaclient!!!').digest('hex');
-        }
         let allTiebas = [];
-        let page_no = 1;
+        let pn = 1;
         while (true) {
-            const params = {
-                BDUSS: bduss,
-                page_no: String(page_no),
-                page_size: '200',
-                _client_version: '12.28.1.0',
-            };
-            params.sign = generateSign(params);
             const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                const res = yield axios_1.default.post('https://c.tieba.baidu.com/c/f/forum/like', (0, utils_1.toQueryString)(params), { headers });
-                console.log(`🔍 第${page_no}页响应:`, JSON.stringify(res.data).substring(0, 200));
-                if (!res.data || res.data.error_code !== '0') {
-                    throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || JSON.stringify(res.data).substring(0, 100)}`);
+                const res = yield axios_1.default.get(`https://tieba.baidu.com/mo/q/newmoindex?pn=${pn}`, { headers });
+                if (!res.data || res.data.error !== 'success') {
+                    throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
                 }
                 return res;
-            }), `获取贴吧列表 第${page_no}页`);
-            const forumList = response.data.forum_list;
-            const pageList = [
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList.non_gconforum) || []),
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList.gconforum) || [])
-            ];
+            }), `获取贴吧列表 第${pn}页`);
+            const pageList = ((_a = response.data.data) === null || _a === void 0 ? void 0 : _a.like_forum) || [];
             allTiebas = allTiebas.concat(pageList);
-            console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
-            if (response.data.has_more !== '1')
+            console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
+            if (pageList.length < 200)
                 break;
-            page_no++;
+            pn++;
             yield sleep(500);
         }
         console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
