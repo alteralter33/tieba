@@ -127,33 +127,20 @@ export async function getTiebaList(bduss: string): Promise<TiebaList> {
     'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
   };
 
-  let allTiebas: TiebaList = [];
-  let pn = 1;
+  const response = await withRetry(async () => {
+    const res = await axios.get(
+      'https://tieba.baidu.com/mo/q/newmoindex',
+      { headers }
+    );
+    if (!res.data || res.data.error !== 'success') {
+      throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
+    }
+    return res;
+  }, '获取贴吧列表');
 
-  while (true) {
-    const response = await withRetry(async () => {
-      const res = await axios.get(
-        `https://tieba.baidu.com/mo/q/newmoindex?pn=${pn}`,
-        { headers }
-      );
-      if (!res.data || res.data.error !== 'success') {
-        throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
-      }
-      return res;
-    }, `获取贴吧列表 第${pn}页`);
-
-    console.log(`🔍 第${pn}页响应:`, JSON.stringify(response.data).substring(0, 300));
-    const pageList: TiebaList = response.data.data?.like_forum || [];
-    allTiebas = allTiebas.concat(pageList);
-    console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
-
-    if (pageList.length < 200) break;
-    pn++;
-    await sleep(500);
-  }
-
-  console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
-  return allTiebas;
+  const tiebaList: TiebaList = response.data.data?.like_forum || [];
+  console.log(`📋 获取贴吧列表完成，共 ${tiebaList.length} 个贴吧`);
+  return tiebaList;
 }
 
 /**
