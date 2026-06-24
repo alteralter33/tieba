@@ -125,10 +125,10 @@ function getTiebaList(bduss) {
         let pn = 1;
         while (true) {
             const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
-                var _a;
                 const res = yield axios_1.default.get(`https://tieba.baidu.com/f/like/mylike?pn=${pn}&rn=200&ie=utf-8`, { headers });
+                console.log(`🔍 第${pn}页响应:`, JSON.stringify(res.data).substring(0, 200));
                 if (!res.data || res.data.no !== 0) {
-                    throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
+                    throw new Error(`获取贴吧列表失败: ${JSON.stringify(res.data).substring(0, 100)}`);
                 }
                 return res;
             }), `获取贴吧列表 第${pn}页`);
