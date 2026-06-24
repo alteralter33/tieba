@@ -115,26 +115,37 @@ function login(bduss) {
  */
 function getTiebaList(bduss) {
     return __awaiter(this, void 0, void 0, function* () {
-        return withRetry(() => __awaiter(this, void 0, void 0, function* () {
-            var _a;
-            const url = 'https://tieba.baidu.com/mo/q/newmoindex';
-            const headers = {
-                'Cookie': `BDUSS=${bduss}`,
-                'Content-Type': 'application/octet-stream',
-                'Referer': 'https://tieba.baidu.com/index/tbwise/forum',
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
-            };
-            const response = yield axios_1.default.get(url, {
-                headers: headers
-            });
-            if (!response.data || response.data.error !== 'success') {
-                throw new Error(`获取贴吧列表失败: ${((_a = response.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
-            }
-            // 获取TBS和贴吧列表
-            const tiebaList = response.data.data.like_forum || [];
-            console.log(`🔍 获取贴吧列表成功, 共 ${tiebaList.length} 个贴吧`);
-            return tiebaList;
-        }), '获取贴吧列表');
+        const headers = {
+            'Cookie': `BDUSS=${bduss}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Mobile Safari/537.36'
+        };
+        let allTiebas = [];
+        let page_no = 1;
+        const page_size = 200;
+        while (true) {
+            const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
+                var _a;
+                const res = yield axios_1.default.post('https://c.tieba.baidu.com/c/f/forum/like', `page_no=${page_no}&page_size=${page_size}`, { headers });
+                if (!res.data || res.data.error_code !== '0') {
+                    throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
+                }
+                return res;
+            }), `获取贴吧列表 第${page_no}页`);
+            const forumList = response.data.forum_list;
+            const pageList = [
+                ...((forumList === null || forumList === void 0 ? void 0 : forumList.non_gconforum) || []),
+                ...((forumList === null || forumList === void 0 ? void 0 : forumList.gconforum) || [])
+            ];
+            allTiebas = allTiebas.concat(pageList);
+            console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
+            if (response.data.has_more !== '1')
+                break;
+            page_no++;
+            yield sleep(500);
+        }
+        console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
+        return allTiebas;
     });
 }
 /**
