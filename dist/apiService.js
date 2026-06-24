@@ -132,6 +132,7 @@ function getTiebaList(bduss) {
                 }
                 return res;
             }), `获取贴吧列表 第${pn}页`);
+            console.log(`🔍 第${pn}页响应:`, JSON.stringify(response.data).substring(0, 300));
             const forumList = response.data.forum_list;
             const pageList = [
                 ...((forumList === null || forumList === void 0 ? void 0 : forumList['non-gconforum']) || []),
