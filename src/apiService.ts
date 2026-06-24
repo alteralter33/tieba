@@ -122,38 +122,31 @@ export async function login(bduss: string): Promise<UserInfo> {
 export async function getTiebaList(bduss: string): Promise<TiebaList> {
   const headers = {
     'Cookie': `BDUSS=${bduss}`,
-    'Content-Type': 'application/x-www-form-urlencoded',
-    'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Mobile Safari/537.36'
+    'Referer': 'https://tieba.baidu.com/',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'
   };
 
   let allTiebas: TiebaList = [];
-  let page_no = 1;
-  const page_size = 200;
+  let pn = 1;
 
   while (true) {
     const response = await withRetry(async () => {
-      const res = await axios.post(
-        'https://c.tieba.baidu.com/c/f/forum/like',
-        `page_no=${page_no}&page_size=${page_size}`,
+      const res = await axios.get(
+        `https://tieba.baidu.com/f/like/mylike?pn=${pn}&rn=200&ie=utf-8`,
         { headers }
       );
-      if (!res.data || res.data.error_code !== '0') {
+      if (!res.data || res.data.no !== 0) {
         throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
       }
       return res;
-    }, `获取贴吧列表 第${page_no}页`);
+    }, `获取贴吧列表 第${pn}页`);
 
-    const forumList = response.data.forum_list;
-    const pageList: TiebaList = [
-      ...(forumList?.non_gconforum || []),
-      ...(forumList?.gconforum || [])
-    ];
-
+    const pageList: TiebaList = response.data.data?.like_forum || [];
     allTiebas = allTiebas.concat(pageList);
-    console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
+    console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
 
-    if (response.data.has_more !== '1') break;
-    page_no++;
+    if (pageList.length < 200) break;
+    pn++;
     await sleep(500);
   }
 
