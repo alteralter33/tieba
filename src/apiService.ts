@@ -143,6 +143,8 @@ export async function getTiebaList(bduss: string): Promise<TiebaList> {
     }, `获取贴吧列表 第${pn}页`);
 
     const forumList = response.data.forum_list;
+    console.log(`🔍 第${pn}页响应:`, JSON.stringify(response.data).substring(0, 300));
+    const forumList = response.data.forum_list;
     const pageList: TiebaList = [
       ...(forumList?.['non-gconforum'] || []),
       ...(forumList?.gconforum || [])
