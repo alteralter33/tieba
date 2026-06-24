@@ -135,8 +135,9 @@ export async function getTiebaList(bduss: string): Promise<TiebaList> {
         `https://tieba.baidu.com/f/like/mylike?pn=${pn}&rn=200&ie=utf-8`,
         { headers }
       );
+      console.log(`🔍 第${pn}页响应:`, JSON.stringify(res.data).substring(0, 200));
       if (!res.data || res.data.no !== 0) {
-        throw new Error(`获取贴吧列表失败: ${res.data?.error_msg || '未知错误'}`);
+        throw new Error(`获取贴吧列表失败: ${JSON.stringify(res.data).substring(0, 100)}`);
       }
       return res;
     }, `获取贴吧列表 第${pn}页`);
