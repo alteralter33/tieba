@@ -120,11 +120,13 @@ export async function login(bduss: string): Promise<UserInfo> {
  * @returns 贴吧列表和TBS
  */
 export async function getTiebaList(bduss: string): Promise<TiebaList> {
-  const headers = {
-    'Cookie': `BDUSS=${bduss}`,
-    'Referer': 'https://tieba.baidu.com/',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'
-  };
+const headers = {
+  'Cookie': `BDUSS=${bduss}`,
+  'Accept': 'application/json, text/javascript, */*; q=0.01',
+  'X-Requested-With': 'XMLHttpRequest',
+  'Referer': 'https://tieba.baidu.com/',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'
+};
 
   let allTiebas: TiebaList = [];
   let pn = 1;
