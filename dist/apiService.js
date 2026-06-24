@@ -115,33 +115,29 @@ function login(bduss) {
  */
 function getTiebaList(bduss) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const headers = {
             'Cookie': `BDUSS=${bduss}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 10; Pixel 4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Mobile Safari/537.36'
+            'Referer': 'https://tieba.baidu.com/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36'
         };
         let allTiebas = [];
-        let page_no = 1;
-        const page_size = 200;
+        let pn = 1;
         while (true) {
             const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
                 var _a;
-                const res = yield axios_1.default.post('https://c.tieba.baidu.com/c/f/forum/like', `page_no=${page_no}&page_size=${page_size}`, { headers });
-                if (!res.data || res.data.error_code !== '0') {
+                const res = yield axios_1.default.get(`https://tieba.baidu.com/f/like/mylike?pn=${pn}&rn=200&ie=utf-8`, { headers });
+                if (!res.data || res.data.no !== 0) {
                     throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
                 }
                 return res;
-            }), `获取贴吧列表 第${page_no}页`);
-            const forumList = response.data.forum_list;
-            const pageList = [
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList.non_gconforum) || []),
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList.gconforum) || [])
-            ];
+            }), `获取贴吧列表 第${pn}页`);
+            const pageList = ((_a = response.data.data) === null || _a === void 0 ? void 0 : _a.like_forum) || [];
             allTiebas = allTiebas.concat(pageList);
-            console.log(`🔍 第${page_no}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
-            if (response.data.has_more !== '1')
+            console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
+            if (pageList.length < 200)
                 break;
-            page_no++;
+            pn++;
             yield sleep(500);
         }
         console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
