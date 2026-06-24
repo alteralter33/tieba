@@ -55,8 +55,8 @@ const notify_1 = require("./notify");
         console.log('▶️ 步骤3: 开始签到过程...');
         const tbs = yield (0, apiService_1.getTbs)(bduss);
         // 配置批量签到的大小和间隔
-        const batchSize = parseInt(process.env.BATCH_SIZE || '20', 10);
-        const batchInterval = parseInt(process.env.BATCH_INTERVAL || '1000', 10);
+        const batchSize = parseInt(process.env.BATCH_SIZE || '1', 10);
+        const batchInterval = parseInt(process.env.BATCH_INTERVAL || '3000', 10);
         // 配置重试相关参数
         const maxRetries = parseInt(process.env.MAX_RETRIES || '3', 10);
         const retryInterval = parseInt(process.env.RETRY_INTERVAL || '5000', 10);
@@ -124,8 +124,8 @@ const notify_1 = require("./notify");
                 }
                 // 每实际签到 95 个，暂停 40 分钟
                 if (successCount > 0 && successCount % 95 === 0 && (i + j + 1) < tiebaList.length) {
-                    console.log(`⏸️ 已成功签到 ${successCount} 个，暂停 40 分钟后继续...`);
-                    yield new Promise(resolve => setTimeout(resolve, 40 * 60 * 1000));
+                    console.log(`⏸️ 已成功签到 ${successCount} 个，暂停 30 分钟后继续...`);
+                    yield new Promise(resolve => setTimeout(resolve, 30 * 60 * 1000));
                     console.log(`▶️ 继续签到...`);
                 }
             }
