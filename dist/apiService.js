@@ -122,28 +122,17 @@ function getTiebaList(bduss) {
             'Referer': 'https://tieba.baidu.com/index/tbwise/forum',
             'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Safari/604.1'
         };
-        let allTiebas = [];
-        let pn = 1;
-        while (true) {
-            const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
-                var _a;
-                const res = yield axios_1.default.get(`https://tieba.baidu.com/mo/q/newmoindex?pn=${pn}`, { headers });
-                if (!res.data || res.data.error !== 'success') {
-                    throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
-                }
-                return res;
-            }), `获取贴吧列表 第${pn}页`);
-            console.log(`🔍 第${pn}页响应:`, JSON.stringify(response.data).substring(0, 300));
-            const pageList = ((_a = response.data.data) === null || _a === void 0 ? void 0 : _a.like_forum) || [];
-            allTiebas = allTiebas.concat(pageList);
-            console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
-            if (pageList.length < 200)
-                break;
-            pn++;
-            yield sleep(500);
-        }
-        console.log(`📋 获取贴吧列表完成，共 ${allTiebas.length} 个贴吧`);
-        return allTiebas;
+        const response = yield withRetry(() => __awaiter(this, void 0, void 0, function* () {
+            var _a;
+            const res = yield axios_1.default.get('https://tieba.baidu.com/mo/q/newmoindex', { headers });
+            if (!res.data || res.data.error !== 'success') {
+                throw new Error(`获取贴吧列表失败: ${((_a = res.data) === null || _a === void 0 ? void 0 : _a.error_msg) || '未知错误'}`);
+            }
+            return res;
+        }), '获取贴吧列表');
+        const tiebaList = ((_a = response.data.data) === null || _a === void 0 ? void 0 : _a.like_forum) || [];
+        console.log(`📋 获取贴吧列表完成，共 ${tiebaList.length} 个贴吧`);
+        return tiebaList;
     });
 }
 /**
