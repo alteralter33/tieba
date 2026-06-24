@@ -115,6 +115,7 @@ function login(bduss) {
  */
 function getTiebaList(bduss) {
     return __awaiter(this, void 0, void 0, function* () {
+        var _a;
         const headers = {
             'Cookie': `BDUSS=${bduss}`,
             'Content-Type': 'application/octet-stream',
@@ -133,11 +134,7 @@ function getTiebaList(bduss) {
                 return res;
             }), `获取贴吧列表 第${pn}页`);
             console.log(`🔍 第${pn}页响应:`, JSON.stringify(response.data).substring(0, 300));
-            const forumList = response.data.forum_list;
-            const pageList = [
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList['non-gconforum']) || []),
-                ...((forumList === null || forumList === void 0 ? void 0 : forumList.gconforum) || [])
-            ];
+            const pageList = ((_a = response.data.data) === null || _a === void 0 ? void 0 : _a.like_forum) || [];
             allTiebas = allTiebas.concat(pageList);
             console.log(`🔍 第${pn}页获取 ${pageList.length} 个贴吧，累计 ${allTiebas.length} 个`);
             if (pageList.length < 200)
