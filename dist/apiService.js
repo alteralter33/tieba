@@ -188,7 +188,8 @@ function signTieba(bduss, tiebaName, tbs, index) {
                 ie: 'utf-8'
             };
             const response = yield axios_1.default.post(url, (0, utils_1.toQueryString)(data), {
-                headers: headers
+                headers: headers,
+                timeout: 15000
             });
             if (!response.data) {
                 throw new Error('签到响应数据为空');
