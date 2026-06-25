@@ -200,6 +200,7 @@ export async function signTieba(bduss: string, tiebaName: string, tbs: string, i
     
     const response = await axios.post<SignResult>(url, toQueryString(data), {
       headers: headers
+      timeout: 15000
     });
     
     if (!response.data) {
