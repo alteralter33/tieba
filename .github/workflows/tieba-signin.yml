@@ -8,7 +8,7 @@ on:
 jobs:
   signin:
     runs-on: ubuntu-latest
-    timeout-minutes: 15   # 设置超时限制
+    timeout-minutes: 360   # 设置超时限制
 
     env:
       TZ: Asia/Shanghai  # 设置时区为中国标准时间
